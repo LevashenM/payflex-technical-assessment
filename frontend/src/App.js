@@ -7,7 +7,7 @@ import Alert from './components/Alert';
 // Use service discovery URL from Aspire, fallback to localhost for development
 const API_BASE_URL = process.env.REACT_APP_API_URL
   ? `${process.env.REACT_APP_API_URL}/api`
-  : 'http://localhost:49381/api';
+  : 'http://localhost:5000/api';
 
 function App() {
   const [payments, setPayments] = useState([]);

@@ -1,16 +1,6 @@
-# PaymentOrchestrator Lite - Simplified Solution
+# PaymentOrchestrator - Simplified Solution
 
-A simplified Buy Now Pay Later (BNPL) payments platform built with .NET Aspire, ASP.NET Core Web API, SQLite, and React.
-
-## Architecture Overview
-
-This solution has been **greatly simplified** from the original complex implementation:
-
-- **Single API Project**: All business logic, data access, and controllers in one project
-- **.NET Aspire**: For modern cloud-native development with built-in telemetry
-- **SQLite**: Simple, file-based database for easy setup and deployment
-- **React 18**: Modern frontend with hooks and functional components
-- **No Complex Layers**: Removed unnecessary abstractions and multiple projects
+A Buy Now Pay Later (BNPL) payments platform built with .NET Aspire, ASP.NET Core Web API, SQLite, and React.
 
 ## Tech Stack
 
@@ -94,7 +84,7 @@ cd PaymentOrchestrator
 # Install frontend dependencies (required after cloning)
 cd frontend && npm install && cd ..
 # Restore .NET packages and run
-dotnet restore
+dotnet restore # Might need to run dotnet workload restore first
 dotnet run --project PaymentOrchestrator.AppHost
 ```
 

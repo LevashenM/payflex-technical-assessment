@@ -7,13 +7,14 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // Add the API service
 var api = builder.AddProject<Projects.PaymentOrchestrator_Api>("api")
+    .WithHttpEndpoint(port: 5000, name:"api-http")
     .WithExternalHttpEndpoints();
 
 // Add the React frontend
 var frontend = builder.AddNpmApp("frontend", "../frontend", "start")
     .WithReference(api)
     .WithEnvironment("BROWSER", "none") // Don't auto-open browser
-    .WithEnvironment("REACT_APP_API_URL", api.GetEndpoint("http"))
+    .WithEnvironment("REACT_APP_API_URL", api.GetEndpoint("api-http"))
     .WithHttpEndpoint(env: "PORT")
     .WithExternalHttpEndpoints();
 

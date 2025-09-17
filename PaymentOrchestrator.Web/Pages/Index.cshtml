@@ -1,0 +1,188 @@
+@page
+@model PaymentOrchestrator.Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Payment Orchestrator";
+}
+
+<div class="container mt-4">
+    <h1>Payment Orchestrator</h1>
+
+    <!-- Create Payment Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Create New Payment</h3>
+        </div>
+        <div class="card-body">
+            <form id="createPaymentForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="customerId" class="form-label">Customer ID</label>
+                            <input type="text" class="form-control" id="customerId" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="amount" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payments List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>All Payments</h3>
+            <button class="btn btn-secondary btn-sm" onclick="loadPayments()">Refresh</button>
+        </div>
+        <div class="card-body">
+            <div id="loading" class="text-center" style="display: none;">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div id="paymentsTable"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let apiBaseUrl = '/api';
+
+// Load payments on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPayments();
+});
+
+// Create payment form submission
+document.getElementById('createPaymentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const customerId = document.getElementById('customerId').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/payments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                customerId: customerId,
+                amount: amount
+            })
+        });
+
+        if (response.ok) {
+            document.getElementById('createPaymentForm').reset();
+            loadPayments();
+            showAlert('Payment created successfully!', 'success');
+        } else {
+            const error = await response.text();
+            showAlert(`Error: ${error}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Network error: ${error.message}`, 'danger');
+    }
+});
+
+async function loadPayments() {
+    const loading = document.getElementById('loading');
+    const table = document.getElementById('paymentsTable');
+
+    loading.style.display = 'block';
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/payments`);
+        const payments = await response.json();
+
+        if (payments.length === 0) {
+            table.innerHTML = '<p class="text-muted">No payments found.</p>';
+        } else {
+            let html = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer ID</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            payments.forEach(payment => {
+                const createdAt = new Date(payment.createdAt).toLocaleDateString() + ' ' +
+                                new Date(payment.createdAt).toLocaleTimeString();
+
+                html += `
+                    <tr>
+                        <td><small>${payment.id}</small></td>
+                        <td>${payment.customerId}</td>
+                        <td>$${payment.amount.toFixed(2)}</td>
+                        <td>
+                            <span class="badge ${payment.status === 'Confirmed' ? 'bg-success' : 'bg-warning'}">
+                                ${payment.status}
+                            </span>
+                        </td>
+                        <td>${createdAt}</td>
+                        <td>
+                            ${payment.status === 'Pending' ?
+                                `<button class="btn btn-sm btn-success" onclick="confirmPayment('${payment.id}')">Confirm</button>` :
+                                '<span class="text-muted">No actions</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        }
+    } catch (error) {
+        table.innerHTML = `<div class="alert alert-danger">Error loading payments: ${error.message}</div>`;
+    } finally {
+        loading.style.display = 'none';
+    }
+}
+
+async function confirmPayment(paymentId) {
+    try {
+        const response = await fetch(`${apiBaseUrl}/payments/simulate-confirmation/${paymentId}`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            loadPayments();
+            showAlert('Payment confirmed successfully!', 'success');
+        } else {
+            const error = await response.text();
+            showAlert(`Error: ${error}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Network error: ${error.message}`, 'danger');
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.card'));
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>

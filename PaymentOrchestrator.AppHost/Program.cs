@@ -7,7 +7,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // Add the API service
 var api = builder.AddProject<Projects.PaymentOrchestrator_Api>("api")
-    .WithHttpEndpoint(port: 5000, name:"api-http")
+    .WithHttpEndpoint(port: 5000, name: "api-http")
     .WithExternalHttpEndpoints();
 
 // Add the React frontend
